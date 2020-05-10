@@ -127,7 +127,15 @@ spec:
         - name: TLSVERIFY
           value: "false"
         - name: INTERNAL_REGISTRY
-          value: "image-registry.openshift-image-registry.svc:5000"          
+          value: "image-registry.openshift-image-registry.svc:5000"      
+        - name: INTERNAL_REGISTRY_USER
+          value: "sa"    
+        - name: INTERNAL_REGISTRY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: example
+              optional: true
         - name: REGISTRY_USER
           valueFrom:
             secretKeyRef:
@@ -342,9 +350,9 @@ spec:
                     buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
       echo "test 2... $APP_IMAGE"
 
-                    #if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
-                    #   buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
-                    #fi
+                    if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
+                       buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                    fi
 
     echo "test 3... $APP_IMAGE"
                     buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
