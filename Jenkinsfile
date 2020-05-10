@@ -355,8 +355,8 @@ spec:
                     #fi
         echo "test 2.5 ... $APP_IMAGE"
 
-                    echo INTERNAL_REGISTRY_USER=${oc whoami}
-                    echo INTERNAL_REGISTRY_PASSWORD=${oc whoami -t}
+                    echo INTERNAL_REGISTRY_USER=$(oc whoami)
+                    echo INTERNAL_REGISTRY_PASSWORD=$(oc whoami -t)
 
   echo "test 2.6  INTERNAL_REGISTRY_USER... $INTERNAL_REGISTRY_USER"
   echo "test 2.7  INTERNAL_REGISTRY_PASSWORD... $INTERNAL_REGISTRY_PASSWORD"
