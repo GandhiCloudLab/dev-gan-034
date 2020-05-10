@@ -129,7 +129,7 @@ spec:
         - name: INTERNAL_REGISTRY
           value: "image-registry.openshift-image-registry.svc:5000"      
         - name: INTERNAL_REGISTRY_USER
-          value: "sa"    
+          value: "jenkins"    
         - name: INTERNAL_REGISTRY_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -351,7 +351,9 @@ spec:
       echo "test 2... $APP_IMAGE"
 
                     if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
-                       buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
+                    #   buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
+                    
+                        buildah login -u "${oc whoami}" -p "${oc whoami -t}" "${INTERNAL_REGISTRY}"
                     fi
 
     echo "test 3... $APP_IMAGE"
