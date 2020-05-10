@@ -351,7 +351,7 @@ spec:
       echo "test 2... $APP_IMAGE"
 
                     if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
-                       buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                       buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
                     fi
 
     echo "test 3... $APP_IMAGE"
