@@ -350,11 +350,12 @@ spec:
                     buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
       echo "test 2... $APP_IMAGE"
 
-                    if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
+                    #if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
                     #   buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
-                    
-                    fi
-                      buildah login -u "${oc whoami}" -p "${oc whoami -t}" "${INTERNAL_REGISTRY}"
+                    #fi
+        echo "test 2.5 ... $APP_IMAGE"
+
+                    buildah login -u "${oc whoami}" -p "${oc whoami -t}" "${INTERNAL_REGISTRY}"
 
     echo "test 3... $APP_IMAGE"
                     buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
