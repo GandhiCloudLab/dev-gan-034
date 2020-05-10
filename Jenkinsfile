@@ -353,8 +353,8 @@ spec:
                     if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
                     #   buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
                     
-                        buildah login -u "${oc whoami}" -p "${oc whoami -t}" "${INTERNAL_REGISTRY}"
                     fi
+                      buildah login -u "${oc whoami}" -p "${oc whoami -t}" "${INTERNAL_REGISTRY}"
 
     echo "test 3... $APP_IMAGE"
                     buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
