@@ -129,12 +129,12 @@ spec:
         - name: INTERNAL_REGISTRY
           value: "image-registry.openshift-image-registry.svc:5000"      
         - name: INTERNAL_REGISTRY_USER
-          value: "pipeline"    
+          value: "default"    
         - name: INTERNAL_REGISTRY_PASSWORD
           valueFrom:
             secretKeyRef:
               key: token
-              name: jenkins-token-62dqg
+              name: default-token-n97zp
               optional: true
         - name: REGISTRY_USER
           valueFrom:
