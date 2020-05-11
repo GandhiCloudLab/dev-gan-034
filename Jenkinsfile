@@ -129,12 +129,12 @@ spec:
         - name: INTERNAL_REGISTRY
           value: "image-registry.openshift-image-registry.svc:5000"      
         - name: INTERNAL_REGISTRY_USER
-          value: "default"    
+          value: "builder"    
         - name: INTERNAL_REGISTRY_PASSWORD
           valueFrom:
             secretKeyRef:
               key: token
-              name: default-token-n97zp
+              name: builder-token-9rrsv
               optional: true
         - name: REGISTRY_USER
           valueFrom:
