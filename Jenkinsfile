@@ -361,6 +361,8 @@ spec:
   echo "test 2.6  INTERNAL_REGISTRY_USER... $INTERNAL_REGISTRY_USER"
   echo "test 2.7  INTERNAL_REGISTRY_PASSWORD... $INTERNAL_REGISTRY_PASSWORD"
 
+                   
+                   
                     # buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
 
     echo "test 3... $APP_IMAGE"
