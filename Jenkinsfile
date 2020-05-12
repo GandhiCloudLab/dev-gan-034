@@ -126,16 +126,6 @@ spec:
           value: .
         - name: TLSVERIFY
           value: "false"
-        - name: INTERNAL_REGISTRY
-          value: "image-registry.openshift-image-registry.svc:5000"      
-        - name: INTERNAL_REGISTRY_USER
-          value: "builder"    
-        - name: INTERNAL_REGISTRY_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: token
-              name: builder-token-9rrsv
-              optional: true
         - name: REGISTRY_USER
           valueFrom:
             secretKeyRef:
@@ -169,9 +159,6 @@ spec:
             name: ibmcloud-config
         - secretRef:
             name: ibmcloud-apikey       
-      env:
-        - name: INTERNAL_REGISTRY
-          value: "image-registry.openshift-image-registry.svc:5000"          
     - name: ibmcloud
       image: docker.io/garagecatalyst/ibmcloud-dev:1.0.10
       tty: true
@@ -236,97 +223,97 @@ spec:
                     ./gradlew assemble --no-daemon
                 '''
             }
-            // stage('Test') {
-            //     sh '''#!/bin/bash
-            //         ./gradlew testClasses --no-daemon
-            //     '''
-            // }
-            // stage('Sonar scan') {
-            //     sh '''#!/bin/bash
+            stage('Test') {
+                sh '''#!/bin/bash
+                    ./gradlew testClasses --no-daemon
+                '''
+            }
+            stage('Sonar scan') {
+                sh '''#!/bin/bash
 
-            //     if [[ -z "${SONARQUBE_URL}" ]]; then
-            //       echo "Skipping Sonar Qube step as Sonar Qube not installed or configured"
-            //       exit 0
-            //     fi
+                if [[ -z "${SONARQUBE_URL}" ]]; then
+                  echo "Skipping Sonar Qube step as Sonar Qube not installed or configured"
+                  exit 0
+                fi
 
-            //     if ./gradlew tasks --all | grep -Eq "^sonarqube"; then
-            //         echo "SonarQube task found"
-            //     else
-            //         echo "Skipping SonarQube step, no task defined"
-            //         exit 0
-            //     fi
+                if ./gradlew tasks --all | grep -Eq "^sonarqube"; then
+                    echo "SonarQube task found"
+                else
+                    echo "Skipping SonarQube step, no task defined"
+                    exit 0
+                fi
 
-            //     ./gradlew \
-            //       -Dsonar.login=${SONARQUBE_USER} \
-            //       -Dsonar.password=${SONARQUBE_PASSWORD} \
-            //       -Dsonar.host.url=${SONARQUBE_URL} \
-            //       -Psonar.projectName=${IMAGE_NAME} \
-            //       sonarqube
-            //     '''
-            // }
+                ./gradlew \
+                  -Dsonar.login=${SONARQUBE_USER} \
+                  -Dsonar.password=${SONARQUBE_PASSWORD} \
+                  -Dsonar.host.url=${SONARQUBE_URL} \
+                  -Psonar.projectName=${IMAGE_NAME} \
+                  sonarqube
+                '''
+            }
         }
-        // container(name: 'node', shell: '/bin/bash') {
-        //     stage('Tag release') {
-        //         sh '''#!/bin/bash
-        //             set -x
-        //             set -e
+        container(name: 'node', shell: '/bin/bash') {
+            stage('Tag release') {
+                sh '''#!/bin/bash
+                    set -x
+                    set -e
 
-        //             if [[ -z "$GIT_AUTH_USER" ]] || [[ -z "$GIT_AUTH_PWD" ]]; then
-        //               echo "Git credentials not found. The pipeline expects to find them in a secret named 'git-credentials'."
-        //               echo "  Update your CLI and register the pipeline again"
-        //               exit 1
-        //             fi
+                    if [[ -z "$GIT_AUTH_USER" ]] || [[ -z "$GIT_AUTH_PWD" ]]; then
+                      echo "Git credentials not found. The pipeline expects to find them in a secret named 'git-credentials'."
+                      echo "  Update your CLI and register the pipeline again"
+                      exit 1
+                    fi
 
-        //             git config --local credential.helper "!f() { echo username=\\$GIT_AUTH_USER; echo password=\\$GIT_AUTH_PWD; }; f"
+                    git config --local credential.helper "!f() { echo username=\\$GIT_AUTH_USER; echo password=\\$GIT_AUTH_PWD; }; f"
 
-        //             git fetch
-        //             git fetch --tags
-        //             git tag -l
+                    git fetch
+                    git fetch --tags
+                    git tag -l
 
-        //             COMMIT_HASH=$(git rev-parse HEAD)
-        //             git checkout -b ${BRANCH} --track origin/${BRANCH}
-        //             git branch --set-upstream-to=origin/${BRANCH} ${BRANCH}
-        //             git reset --hard ${COMMIT_HASH}
+                    COMMIT_HASH=$(git rev-parse HEAD)
+                    git checkout -b ${BRANCH} --track origin/${BRANCH}
+                    git branch --set-upstream-to=origin/${BRANCH} ${BRANCH}
+                    git reset --hard ${COMMIT_HASH}
 
-        //             git config --global user.name "Jenkins Pipeline"
-        //             git config --global user.email "jenkins@ibmcloud.com"
+                    git config --global user.name "Jenkins Pipeline"
+                    git config --global user.email "jenkins@ibmcloud.com"
 
-        //             if [[ "${BRANCH}" == "master" ]] && [[ $(git describe --tag `git rev-parse HEAD`) =~ (^[0-9]+.[0-9]+.[0-9]+$) ]] || \
-        //                [[ $(git describe --tag `git rev-parse HEAD`) =~ (^[0-9]+.[0-9]+.[0-9]+-${BRANCH}[.][0-9]+$) ]]
-        //             then
-        //                 echo "Latest commit is already tagged"
-        //                 echo "IMAGE_NAME=$(basename -s .git `git config --get remote.origin.url` | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')" > ./env-config
-        //                 echo "IMAGE_VERSION=$(git describe --abbrev=0 --tags)" >> ./env-config
-        //                 exit 0
-        //             fi
+                    if [[ "${BRANCH}" == "master" ]] && [[ $(git describe --tag `git rev-parse HEAD`) =~ (^[0-9]+.[0-9]+.[0-9]+$) ]] || \
+                       [[ $(git describe --tag `git rev-parse HEAD`) =~ (^[0-9]+.[0-9]+.[0-9]+-${BRANCH}[.][0-9]+$) ]]
+                    then
+                        echo "Latest commit is already tagged"
+                        echo "IMAGE_NAME=$(basename -s .git `git config --get remote.origin.url` | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')" > ./env-config
+                        echo "IMAGE_VERSION=$(git describe --abbrev=0 --tags)" >> ./env-config
+                        exit 0
+                    fi
 
-        //             mkdir -p ~/.npm
-        //             npm config set prefix ~/.npm
-        //             export PATH=$PATH:~/.npm/bin
-        //             npm i -g release-it
+                    mkdir -p ~/.npm
+                    npm config set prefix ~/.npm
+                    export PATH=$PATH:~/.npm/bin
+                    npm i -g release-it
 
-        //             if [[ "${BRANCH}" != "master" ]]; then
-        //                 PRE_RELEASE="--preRelease=${BRANCH}"
-        //             fi
+                    if [[ "${BRANCH}" != "master" ]]; then
+                        PRE_RELEASE="--preRelease=${BRANCH}"
+                    fi
 
-        //             release-it patch ${PRE_RELEASE} \
-        //               --ci \
-        //               --no-npm \
-        //               --no-git.push \
-        //               --no-git.requireCleanWorkingDir \
-        //               --verbose \
-        //               -VV
+                    release-it patch ${PRE_RELEASE} \
+                      --ci \
+                      --no-npm \
+                      --no-git.push \
+                      --no-git.requireCleanWorkingDir \
+                      --verbose \
+                      -VV
 
-        //             git push --follow-tags -v
+                    git push --follow-tags -v
 
-        //             echo "IMAGE_VERSION=$(git describe --abbrev=0 --tags)" > ./env-config
-        //             echo "IMAGE_NAME=$(basename -s .git `git config --get remote.origin.url` | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')" >> ./env-config
-        //             echo "REPO_URL=$(git config --get remote.origin.url)" >> ./env-config
+                    echo "IMAGE_VERSION=$(git describe --abbrev=0 --tags)" > ./env-config
+                    echo "IMAGE_NAME=$(basename -s .git `git config --get remote.origin.url` | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')" >> ./env-config
+                    echo "REPO_URL=$(git config --get remote.origin.url)" >> ./env-config
 
-        //             cat ./env-config
-        //         '''
-        //     }
-        // }
+                    cat ./env-config
+                '''
+            }
+        }
         container(name: 'buildah', shell: '/bin/bash') {
             stage('Build image') {
                 sh '''#!/bin/bash
@@ -344,15 +331,15 @@ spec:
 
                 APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}-temp:${IMAGE_VERSION}"
 
-    echo "test 1... $APP_IMAGE"
+                echo "Image... $APP_IMAGE"
 
-                    buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
+                buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
 
-                    if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
-                       buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
-                    fi
+                if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
+                    buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                fi
 
-                    buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
+                buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
                 '''
             }
         }
@@ -378,7 +365,7 @@ spec:
                     export TRIVY_USERNAME=${REGISTRY_USER}
                     export TRIVY_PASSWORD=${REGISTRY_PASSWORD}
 
-                    echo "ScanImage Before Trivy image scanning.... $APP_IMAGE_Temp"
+                    echo "Trivy image scanning started.... $APP_IMAGE_Temp"
 
                     # Trivy scan
                     trivy ${APP_IMAGE_Temp}
@@ -395,8 +382,6 @@ spec:
                     else
                         echo "Image is scanned Successfully. No vulnerabilities found"
                     fi;
-
-                    echo "ScanImage After Trivy image scanning....0"
                 '''
             }
         }
