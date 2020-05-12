@@ -342,29 +342,17 @@ spec:
 		              REGISTRY_PASSWORD="${APIKEY}"
 		            fi
 
-                    #APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
-                    APP_IMAGE="${INTERNAL_REGISTRY}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
+                APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}-temp:${IMAGE_VERSION}"
 
     echo "test 1... $APP_IMAGE"
 
                     buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
-      echo "test 2... $APP_IMAGE"
 
-                    #if [[ -n "${INTERNAL_REGISTRY_USER}" ]] && [[ -n "${INTERNAL_REGISTRY_PASSWORD}" ]]; then
-                    #   buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
-                    #fi
-        echo "test 2.5 ... $APP_IMAGE"
+                    if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
+                       buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                    fi
 
-  echo "test 2.6  INTERNAL_REGISTRY_USER... $INTERNAL_REGISTRY_USER"
-  echo "test 2.7  INTERNAL_REGISTRY_PASSWORD... $INTERNAL_REGISTRY_PASSWORD"
-
-                   
-                   
-                     buildah login -u "${INTERNAL_REGISTRY_USER}" -p "${INTERNAL_REGISTRY_PASSWORD}" "${INTERNAL_REGISTRY}"
-
-    echo "test 3... $APP_IMAGE"
                     buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
-    echo "test 4... $APP_IMAGE"
                 '''
             }
         }
@@ -384,17 +372,17 @@ spec:
                       REGISTRY_PASSWORD="${APIKEY}"
                     fi
 
-                    APP_IMAGE="${INTERNAL_REGISTRY}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
+                    APP_IMAGE_Temp="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}-temp:${IMAGE_VERSION}"
 
-                    #export TRIVY_AUTH_URL=${REGISTRY_URL}
-                    #export TRIVY_USERNAME=${REGISTRY_USER}
-                    #export TRIVY_PASSWORD=${REGISTRY_PASSWORD}
+                    export TRIVY_AUTH_URL=${REGISTRY_URL}
+                    export TRIVY_USERNAME=${REGISTRY_USER}
+                    export TRIVY_PASSWORD=${REGISTRY_PASSWORD}
 
-                    echo "ScanImage Before Trivy image scanning.... $APP_IMAGE"
+                    echo "ScanImage Before Trivy image scanning.... $APP_IMAGE_Temp"
 
                     # Trivy scan
-                    trivy ${APP_IMAGE}
-                    # trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE}
+                    trivy ${APP_IMAGE_Temp}
+                    # trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE_Temp}
 
                     # Trivy scan result processing
                     my_exit_code=$?
@@ -426,19 +414,19 @@ spec:
 		              REGISTRY_PASSWORD="${APIKEY}"
 		            fi
 
-                    APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
-                    APP_IMAGE_INTERNAL="${INTERNAL_REGISTRY}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
+                APP_IMAGE     ="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
+                APP_IMAGE_Temp="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}-temp:${IMAGE_VERSION}"
 
-                    # #buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
-                    if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
-                        buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
-                    fi
-                    # buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
-            
-                    buildah pull ${APP_IMAGE_INTERNAL}
-                    buildah tag ${APP_IMAGE_INTERNAL} ${APP_IMAGE}
-                    buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
- 
+                # #buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
+                if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
+                    buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                fi
+                # buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
+        
+                buildah pull ${APP_IMAGE_Temp}
+                buildah tag ${APP_IMAGE_Temp} ${APP_IMAGE}
+                buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
+                buildah rmi ${APP_IMAGE_Temp}
                 '''
             }
         }
