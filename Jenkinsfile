@@ -263,7 +263,8 @@ spec:
                       echo "  Update your CLI and register the pipeline again"
                       exit 1
                     fi
-
+ 
+ 
                     git config --local credential.helper "!f() { echo username=\\$GIT_AUTH_USER; echo password=\\$GIT_AUTH_PWD; }; f"
 
                     git fetch
